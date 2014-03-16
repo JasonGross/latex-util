@@ -1,0 +1,242 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 2010 by Jason Gross (jgross@mit.edu)
+%
+% This file may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either
+% version 1.3c of this license or (at your option) any later
+% version. The latest version of this license is in:
+%
+%   http://www.latex-project.org/lppl.txt
+%
+% and version 1.3c or later is part of all distributions of
+% LaTeX version 2005/12/01 or later.
+%
+% \fi
+%
+%
+% \iffalse
+%<class>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+%<driver>\ProvidesFile{pset.dtx}
+%<class>\ProvidesClass{pset}
+%<class> [2011/02/20 v0.3b PSet Template]
+%<class>\RequirePackage{fancyhdr}
+%<class>\RequirePackage{lastpage}
+%<class>\RequirePackage{comment}
+%<class>\RequirePackage{ifdraft}
+%<class>\RequirePackage{xifthen}
+%<class>\RequirePackage{etextools}[2010/12/07]
+%
+%<*driver>
+\documentclass{ltxdoc}
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\begin{document}
+  \DocInput{pset.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \CheckSum{0}
+%
+% \CharacterTable
+% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%  Digits        \0\1\2\3\4\5\6\7\8\9
+%  Exclamation   \!     Double quote  \"     Hash (number) \#
+%  Dollar        \$     Percent       \%     Ampersand     \&
+%  Acute accent  \'     Left paren    \(     Right paren   \)
+%  Asterisk      \*     Plus          \+     Comma         \,
+%  Minus         \-     Point         \.     Solidus       \/
+%  Colon         \:     Semicolon     \;     Less than     \<
+%  Equals        \=     Greater than  \>     Question mark \?
+%  Commercial at \@     Left bracket  \[     Backslash     \\
+%  Right bracket \]     Circumflex    \^     Underscore    \_
+%  Grave accent  \`     Left brace    \{     Vertical bar  \|
+%  Right brace   \}     Tilde         \~}
+%
+% \changes{v0.1}{2010/09/08}{Initial version.}
+% \changes{v0.2}{2010/09/10}{Added option for separate pages.}
+% \changes{v0.3}{2011/01/05}{Added options for geometry, show/hide
+%                            pages, exam.  Added a check for nested
+%                            question environments}
+% \changes{v0.3a}{2011/02/15}{Added recitation.}
+% \changes{v0.3b}{2011/02/20}{Fixed option passing.}
+%
+% \GetFileInfo{pset.dtx}
+%
+% \DoNotIndex{\#,\$,\%,\&,\@,\\,\{,\},\^,\_,\~,\ }
+% \DoNotIndex{}
+%
+% \title{The \textsf{pset} class\thanks{This document
+%   corresponds to \textsf{pset}~\fileversion,
+%   dated~\filedate.}}
+% \author{Jason Gross \\ \texttt{jgross@mit.edu}}
+%
+% \maketitle
+%
+% \section{Introduction}
+% 
+% The \textsf{pset} class provides a template for PSets.
+%
+% \section{Usage}
+% I give the usage and specification of every macro defined.  I give bugs when
+% I know them (please email me if you find other bugs, or have fixes for the
+% bugs I list).  I sometimes give extra description or justification.
+%
+% \DescribeMacro{\duedate}
+% \noindent Usage: |\duedate|\marg{date} \par\noindent
+% Specification: The \meta{date} is used as the due date.
+%
+% \StopEventually{\PrintChanges\PrintIndex}
+%
+% \section{Options}
+% \begin{macro}{\if@final}
+% \begin{macro}{\if@showproblem}
+%    \begin{macrocode}
+\newif\if@final
+\ifdraft{\@finalfalse}{\@finaltrue}
+\newif\if@showproblem
+
+\if@final
+  \@showproblemfalse
+\else
+  \@showproblemtrue
+\fi
+\newif\if@usegeometry
+\@usegeometrytrue
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%
+%   \begin{macrocode}
+\newif\if@separatepages\newif\if@exam
+\@separatepagesfalse\@examfalse
+\DeclareOption{separatepages}{\@separatepagestrue}
+\DeclareOption{showproblems}{\@showproblemtrue}
+\DeclareOption{hideproblems}{\@showproblemfalse}
+\DeclareOption{nogeometry}{\@usegeometryfalse}
+\DeclareOption{geometry}{\@usegeometrytrue}
+\DeclareOption{exam}{\@examtrue}
+\DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}}
+%    \end{macrocode}
+%
+%   \begin{macrocode}
+\ProcessOptions\relax
+\LoadClass{article}% \LoadClassWithOptions{article}
+\if@usegeometry
+  \RequirePackage[margin=1in]{geometry}
+\fi
+%    \end{macrocode}
+%
+% \section{Setup}
+%
+% \begin{environment}{question}
+% Question environments should not nest.  So we redefine |\begin| to check for this.
+%    \begin{macrocode}
+\ExpandNext{\def\pset@question@begin#1}{\expandnext{\noexpand\ifstrcmp{#1}{question}{%
+  \PackageError{pset}{Environment question not permitted to nest.  Inserting missing \string\end\string{question\string}.}%
+    {Question environments are like sections; you can't nest a section inside another one (you'd need a subsection).}%
+  \end{question}}}{%
+    \begin{#1}%
+  }%
+}
+
+\newenvironment{question}[1][]{%
+ \section{#1}
+   \if@showproblem
+     \newenvironment{problem}{\subsection*{Problem}}{}%
+     \newenvironment{solution}{\subsection*{Solution}}{}%
+   \else
+     \excludecomment{problem}%
+     \newenvironment{solution}{}{}%
+   \fi
+  \let\begin=\pset@question@begin
+}{\if@separatepages\cleardoublepage\fi}
+%    \end{macrocode}
+% \end{environment}
+%
+%
+% \begin{environment}{question*}
+%    \begin{macrocode}
+\newenvironment{question*}[1][]{%
+ \section*{#1}
+  \if@showproblem
+    \newenvironment{problem}{\subsection*{Problem}}{}%
+    \newenvironment{solution}{\subsection*{Solution}}{}%
+  \else
+    \excludecomment{problem}%
+    \newenvironment{solution}{}{}%
+  \fi
+  \let\begin=\pset@question@begin
+}{\if@separatepages\cleardoublepage\fi}
+%    \end{macrocode}
+% \end{environment}
+%
+% \begin{macro}{\duedate}
+% \begin{macro}{\problemsetnumber}
+% \begin{macro}{\semester}
+% \begin{macro}{\classname}
+% \begin{macro}{\professor}
+% \begin{macro}{\collaborators}
+% \begin{macro}{\recitation}
+%    These macros provide
+%    information about the class assigning the pset.
+%    The information is stored away in internal control sequences.
+%    It is the task of the |\maketitle| command to use the
+%    information provided. The definitions of these macros are shown
+%    here for information.
+%    \begin{macrocode}
+\newcommand*{\duedate}[1]{\gdef\@duedate{#1}}
+\newcommand*{\psetnum}[1]{\gdef\@psetnum{#1}}
+\newcommand*{\classnumber}[1]{\gdef\@classnumber{#1}}
+\newcommand*{\classname}[1]{\gdef\@classname{#1}}
+\newcommand*{\professor}[1]{\gdef\@professor{#1}}
+\newcommand*{\collaborators}[1]{\gdef\@collaborators{#1}}
+\newcommand*{\recitation}[2][]{\gdef\@recitation{#2}\xifblank{#1}{\gdef\@shortrecitation{#2}}{\gdef\@shortrecitation{#1}}}
+\let\@recitation\relax
+\let\@shortrecitation\relax
+\let\@collaborators\relax
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+%
+%    \begin{macrocode}
+\AtBeginDocument{
+  \pagestyle{fancy}
+  \ifthenelse{\equal{\@collaborators}{}}{\let\@collaborators\relax}{}
+  \ifx\relax\@collaborators
+    \headheight 13.6pt\relax
+  \else
+    \headheight 25.3pt\relax
+  \fi
+  \fancyhead{}
+  \fancyfoot{}
+
+  \begingroup
+    \def\fullexpand#1{{\edef\@temp{#1}\expandafter}\@temp}
+  \expandafter\endgroup
+  \fullexpand{%
+    \noexpand\lhead{\@author \ifx\relax\@collaborators\else \noexpand\\ Collaborators: \expandafter\@collaborators\fi}
+    \noexpand\rhead{\@duedate \ifx\relax\@collaborators\else \noexpand\\ \fi}
+    \noexpand\chead{\@classnumber\noexpand\space \if@exam Exam \else P-Set \fi \@psetnum \ifx\relax\@shortrecitation\else\space(\@shortrecitation)\fi \ifx\relax\@collaborators\else \noexpand\\ \fi}
+    \noexpand\cfoot{\noexpand\thepage\noexpand\space of \noexpand\pageref{LastPage}}
+  }%
+  \begingroup
+    \begin{center}%
+      {\noindent \fontsize{21}{21}\selectfont \@classnumber: \@classname{} (\@professor), \if@exam Exam \else Problem Set \fi\@psetnum}%
+    \end{center}%
+  \endgroup
+  }
+%    \end{macrocode}
+%
+% \Finale
+\endinput
