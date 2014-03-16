@@ -45,9 +45,10 @@
       \fi
       {#2}{}%
     }{\lazyexecutedefault{#2}}%
-  }{#2}%
+  }{\lazyexecutedefault{#2}}%
   \begingroup
-    \immediate\write\lazy@out{\detokenize{\expandafter\newif\csname if@lazy@\detokenize{#2}\endcsname}}%
+    % the \makeatletter is a bad patch to catch things like \@foo in the argument
+    \immediate\write\lazy@out{\detokenize{{\makeatletter\expandafter}\expandafter\newif\csname if@lazy@\detokenize{#2}\endcsname}}%
     \ExpandNext{\def\do##1}{%
       \ExpandNext{%
         \noexpand\expandafter\let\csname lazy@definition@\string##1\endcsname=##1\relax
@@ -58,7 +59,7 @@
         }{%
           \ExpandNext{%
             \noexpand\immediate\write\lazy@out
-          }{\detokenize{\csname @lazy@\detokenize{#2}true\endcsname}}%
+          }{\detokenize{{\makeatletter\expandafter}\csname @lazy@\detokenize{#2}true\endcsname}}%
           \expandafter\let\expandafter##1\expandafter=\csname lazy@definition@\string##1\endcsname
         }%
         {% I'm not sure how many \expandafters I need in the following, since I should already know
@@ -105,7 +106,7 @@
 
 %\usepackage{pst-pdf,pst-text,pstricks-add}
 \usepackage{fancyhdr}
-\usepackage{lastpage}
+\usepackage{lastpage}[2011/09/01]
 \usepackage{enumerate}
 \lazyexecute{\wrapfigure}{\usepackage{wrapfig}}
 \lazyexecute{\multicols}{\usepackage{multicol}}
@@ -178,19 +179,11 @@
 %\else
 
 \makeatletter
-\lazyexecute{\DeclarePairedDelimiter,\coloneqq,\Aboxed}{
-  \usepackage{mathtools}[2011/02/12]
-  \def\@Aboxed#1&#2\ENDDNE{%
-    \settowidth\@tempdima{$\displaystyle#1$}% <-
-    \addtolength\@tempdima{\fboxsep}%
-    \addtolength\@tempdima{\fboxrule}%
-    \global\@tempdima=\@tempdima
-    \kern\@tempdima
-    &
-    \kern-\@tempdima
-    \boxed{#1#2}
-  }
-}
+\usepackage{mathtools}[2011/04/06]
+\usepackage{empheq}
+%\lazyexecute{\DeclarePairedDelimiter,\coloneqq,\Aboxed,\mathclap,\smash,\mathllap,\mathrlap,\mathmbox,\clap,\mathmakebox,\cramped,\crampedllap,\crampedrlap,\crampedclap,\smashoperator,\adjustlimits,\newtagform,\renewtagform,\usetagform,\mathtoolset,\xleftrightarrow,\xLeftarrow,\xhookleftarrow,\xmapsto,\xRightarrow,\xLeftrightarrow,\xhookrightarrow,\xrightharpoondown,\xleftharpoondown,\xrightleftharpoons,\xrightharpoonup,\xleftharpoonup,\xleftrightharpoons,\underbracket,\overbracket,\multlined,\dcases}{
+%  \usepackage{mathtools}[2011/04/06]
+%}
 \makeatother
 
 
@@ -202,17 +195,19 @@
 \makeatletter
 \@ifpackageloaded{xy}{}{
   \@ifpackageloaded{expl3}{%
-    %\usepackage{mathpazo} or \usepackage{mathptmx} 
-    \usepackage{flexisym} % flexisym package is required by breqn
-                          % can load as \usepackage[mathpazo]{flexisym}
-    \usepackage{breqn}
+    %%\usepackage{mathpazo} or \usepackage{mathptmx} 
+    % the following breaks \allowbreaks in TeXLive 2009/Debian.......
+    %\usepackage{flexisym} % flexisym package is required by breqn
+    %                      % can load as \usepackage[mathpazo]{flexisym}
+    %\usepackage{breqn}
   }{
     \AtBeginDocument{%
       \@ifpackageloaded{expl3}{%
-        %\usepackage{mathpazo} or \usepackage{mathptmx} 
-        \usepackage{flexisym} % flexisym package is required by breqn
-                              % can load as \usepackage[mathpazo]{flexisym}
-        \usepackage{breqn} 
+        %%\usepackage{mathpazo} or \usepackage{mathptmx} 
+        % the following breaks \allowbreaks in TeXLive 2009/Debian.......
+        %\usepackage{flexisym} % flexisym package is required by breqn
+        %                      % can load as \usepackage[mathpazo]{flexisym}
+        %\usepackage{breqn} 
       }{}
     }
   }
@@ -220,26 +215,26 @@
 \makeatother
 
 \makeatletter
-\renewcommand*{\Aboxed}[1]{\@aligedfbox{#1}{}#1&\@endalignedfbox}
-\def\@aligedfbox#1#2#3&#4\@endalignedfbox{%
-  \ifempty{#4}{%
-     \vrule
-     \edef\temp{\expandafter\unexpanded\expandafter{\@@aligedfbox{#2#3}#1&\@@endalignedfbox}}%
-     \temp
-  }{%
-    \edef\temp{\expandafter\unexpanded\expandafter{\@aligedfbox{#1}{#2#3}#4\@endalignedfbox}}%
-    \temp
-  }%
-}
-\def\@@aligedfbox#1#2&#3\@@endalignedfbox{%
-  \underline{\overline{{}#2\vphantom{#1}}}
-  \ifempty{#3}{%
-    \vrule
-  }{%
-    &
-    \expandafter\relax\@@aligedfbox{#1}#3\@@endalignedfbox
-  }%
-}
+%\renewcommand*{\Aboxed}[1]{\@aligedfbox{#1}{}#1&\@endalignedfbox}
+%\def\@aligedfbox#1#2#3&#4\@endalignedfbox{%
+%  \ifempty{#4}{%
+%     \vrule
+%     \edef\temp{\expandafter\unexpanded\expandafter{\@@aligedfbox{#2#3}#1&\@@endalignedfbox}}%
+%     \temp
+%  }{%
+%    \edef\temp{\expandafter\unexpanded\expandafter{\@aligedfbox{#1}{#2#3}#4\@endalignedfbox}}%
+%    \temp
+%  }%
+%}
+%\def\@@aligedfbox#1#2&#3\@@endalignedfbox{%
+%  \underline{\overline{{}#2\vphantom{#1}}}
+%  \ifempty{#3}{%
+%    \vrule
+%  }{%
+%    &
+%    \expandafter\relax\@@aligedfbox{#1}#3\@@endalignedfbox
+%  }%
+%}
 \makeatother
 
 
@@ -251,14 +246,23 @@
 \lazyexecute{\xfrac,\sfrac}{\usepackage{xfrac}[2010/02/02]}
 
 \lazyexecute{\si,\SI,\num}{%
-  \usepackage[exponent-product=\cdot,per-mode=fraction,quotient-mode=fraction,fraction-function=\sfrac]{siunitx} %alsoload={named,prefixed,abbr,hep},
+  \usepackage{siunitx}[2012/01/26] %alsoload={named,prefixed,abbr,hep},
+  \sisetup{
+    exponent-product  = \cdot,
+    per-mode          = fraction,
+    quotient-mode     = fraction,
+    fraction-function = \sfrac
+  }
   \DeclareSIUnit\statvolt{statV}
+  \DeclareSIUnit\statcoulomb{statC}
+  \DeclareSIUnit\statampere{statA}
   \DeclareSIUnit\erg{erg}
   \DeclareSIUnit\parsec{parsec}
   \DeclareSIUnit\lightyear{ly}
   \DeclareSIUnit\electronvolt{eV}
   \DeclareSIUnit\dyne{dyn}
   \DeclareSIUnit\year{y}
+  \DeclareSIUnit\atmosphere{atm}
 }
 
 \providecommand{\abs}[1]{\left\lvert#1\right\rvert}%\DeclarePairedDelimiter\abs{\lvert}{\rvert} %\providecommand{\abs}[1]{\lvert#1\rvert}
@@ -284,6 +288,11 @@
 \DeclareMathOperator{\fract}{fract}
 \DeclareMathOperator{\obj}{Obj}
 \DeclareMathOperator{\morph}{Morph}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\coker}{coker}
+\DeclareMathOperator{\Frac}{Frac}
+\DeclareMathOperator{\sech}{sech}
+\DeclareMathOperator{\csch}{csch}
 \newcommand{\lcmf}[2]{\lcm\left( #1 , #2 \right)}
 \def\dbar{{\mathchar'26\mkern-12mu d}}
 
@@ -322,17 +331,18 @@
 \newcommand{\nbtuple}[1]{\left(#1\right)}
 \newcommand{\breakingtuple}[1]{\lrbreak{(}{#1}{)}}         %$
          %\let\oldcomma=,
-\begingroup
-  \lccode`~=`,
-  \lowercase{\endgroup
-    \let\oldcomma=~
-    \def\comma{\oldcomma}
-    \def~{\comma}         %
-  }         %
-         %\def\aaa{\comma}
-         %\mathcode`,="613B
+%\begingroup
+  %\lccode`~=`,
+  %\lowercase{\endgroup
+    %\let\oldcomma=~
+    %\def\comma{\oldcomma}
+    %\def~{\comma}         %
+  %}         %
 
-\newcommand{\allowbreaks}[1]{\begingroup \mathcode`,="8000 \def\comma{\oldcomma\allowbreak}#1\def\comma{\oldcomma} \mathcode`,="613B \endgroup }         %\replace{#1}{,}{,\allowbreak}}
+%\newcommand{\allowbreaks}[1]{\begingroup \mathcode`,="8000 \def\comma{\oldcomma\allowbreak}#1\def\comma{\oldcomma} \mathcode`,="613B \endgroup }        
+\newcommand{\allowbreaks}[2][,]{\begingroup \catcode`#1=\active\scantokens{\edef#1{\detokenize{#1}\noexpand\allowbreak}#2}\endgroup}
+\newcommand{\forcebreaks}[2][,]{\begingroup \catcode`#1=\active\scantokens{\def#1{\detokenize{#1}\hfill\break}#2}\endgroup}
+ %\replace{#1}{,}{,\allowbreak}}
 %\let\phantomheight\vphantom
 \newcommand{\lbreakh}[4][\!\!]{\left#2\vphantom{#3#4}\right.#1\allowbreaks{#3}}
 \newcommand{\rbreakh}[4][\!\!]{#2#1\left.\vphantom{#2#4}\right#3}
@@ -378,7 +388,10 @@
 \newcommand{\overlineb}[2]{\overline{#1\vphantom{#2}}\allowbreak\overline{#2\vphantom{#1}}}
 %\newcommand{\overlinec}[3]{\overline{#1\text{\makebox[0pt]{$\phantom{#2#3}$}}}\allowbreak\overline{#2\vphantom{#1#3}}\allowbreak\overline{#3\vphantom{#1#2}}}
 
-\newcommand{\suchthat}[2][]{#1\left\vert\vphantom{#1#2}\right.\!#2}
+\providecommand{\mathsetdividerchar}{\vert}
+\providecommand{\mathsetdivider}{\middle\mathsetdividerchar}
+\providecommand{\suchthatdivider}{\mathsetdivider}
+\newcommand{\suchthat}[2][]{\left. #1\,\suchthatdivider#2\right.}
 \newcommand{\suchthatb}[2][]{#1 \lbreakh[\!]{\vert}{#2}{#1}}
 \providecommand{\scfont}{}
 \makeatletter
@@ -464,6 +477,7 @@
 
 % 276887 sp is twice the width difference between $\left(\right)$ and $\left(\right.\left.\right)$
 % \hspace{-138444 sp} \hspace{-138443 sp}\
+
 \makeatletter
 \def\breakingleft#1{{\def\templeft##1\breakingright##2{\left#1\vphantom{##1}\right.\n@space##1\n@space\left.\vphantom{##1}\right##2}\expandafter}\templeft}
 

@@ -19,9 +19,9 @@
 %<class>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
 %<driver>\ProvidesFile{pset.dtx}
 %<class>\ProvidesClass{pset}
-%<class> [2011/02/20 v0.3b PSet Template]
+%<class> [2012/04/28 v0.3c PSet Template]
 %<class>\RequirePackage{fancyhdr}
-%<class>\RequirePackage{lastpage}
+%<class>\RequirePackage{pageslts}
 %<class>\RequirePackage{comment}
 %<class>\RequirePackage{ifdraft}
 %<class>\RequirePackage{xifthen}
@@ -63,6 +63,7 @@
 %                            question environments}
 % \changes{v0.3a}{2011/02/15}{Added recitation.}
 % \changes{v0.3b}{2011/02/20}{Fixed option passing.}
+% \changes{v0.3c}{2012/04/28}{Replaced lastpage with pageslts.}
 %
 % \GetFileInfo{pset.dtx}
 %
@@ -199,6 +200,10 @@
 \let\@recitation\relax
 \let\@shortrecitation\relax
 \let\@collaborators\relax
+\def\@duedate{\@latex@warning@no@line{No \noexpand\duedate given}}
+\def\@classnumber{\@latex@warning@no@line{No \noexpand\classnumber given}}
+\def\@classname{\@latex@warning@no@line{No \noexpand\classname given}}
+\def\@professor{\@latex@warning@no@line{No \noexpand\professor given}}
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
@@ -211,6 +216,7 @@
 %
 %    \begin{macrocode}
 \AtBeginDocument{
+  \pagenumbering{arabic}
   \pagestyle{fancy}
   \ifthenelse{\equal{\@collaborators}{}}{\let\@collaborators\relax}{}
   \ifx\relax\@collaborators
@@ -228,14 +234,21 @@
     \noexpand\lhead{\@author \ifx\relax\@collaborators\else \noexpand\\ Collaborators: \expandafter\@collaborators\fi}
     \noexpand\rhead{\@duedate \ifx\relax\@collaborators\else \noexpand\\ \fi}
     \noexpand\chead{\@classnumber\noexpand\space \if@exam Exam \else P-Set \fi \@psetnum \ifx\relax\@shortrecitation\else\space(\@shortrecitation)\fi \ifx\relax\@collaborators\else \noexpand\\ \fi}
-    \noexpand\cfoot{\noexpand\thepage\noexpand\space of \noexpand\pageref{LastPage}}
+    \noexpand\cfoot{\noexpand\theCurrentPage\noexpand\space of \noexpand\lastpageref{LastPages}}
   }%
   \begingroup
     \begin{center}%
-      {\noindent \fontsize{21}{21}\selectfont \@classnumber: \@classname{} (\@professor), \if@exam Exam \else Problem Set \fi\@psetnum}%
+      {\noindent \fontsize{21}{21}\selectfont \@classnumber: \@classname{} (\@professor), \if@exam Exam~\else Problem~Set~\fi\@psetnum}%
     \end{center}%
   \endgroup
-  }
+  \undef\@recitation
+  \undef\@shortrecitation
+  \undef\@collaborators
+  \undef\@duedate
+  \undef\@classnumber
+  \undef\@classname
+  \undef\@professor
+}
 %    \end{macrocode}
 %
 % \Finale

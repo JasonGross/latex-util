@@ -110,11 +110,8 @@ def ask_update_files(file_name, tag_alongs=[], update_tag_alongs=True, base_path
         i = 0
         use = None
         while i < len(rtn):
-            ans = ''
-            while ('y' not in ans and 'n' not in ans) or ('y' in ans and 'n' in ans):
-                cur = os.path.relpath(rtn[i][0],base_path)
-                ans = input('Is the newest file ' + cur + '? ').lower()
-            if 'y' in ans:
+            cur = os.path.relpath(rtn[i][0],base_path)
+            if ask('Is the newest file %s?' % cur):
                 use = rtn[i][0]
                 break
             i += 1
@@ -183,32 +180,17 @@ def cleanup_files(base_path=os.getcwd(), show_progress=True, match=(lambda s: s[
                 print('In ' + root + ':')
                 for file_name in files[root]:
                     print(file_name)
-            do_del = None
-            while do_del not in ('all', 'none', 'some'):
-                do_del = input('Would you like to delete: (a)ll, (n)one, (s)ome, (q)uit? ').strip().lower()
-                if do_del[0] in 'ayns':
-                    if do_del[0] in 'ay': do_del = 'all' #all, yes
-                    elif do_del[0] == 's': do_del = 'some'
-                    elif do_del[0] == 'n': do_del = 'none'
-                elif do_del[0] in 'qx':
-                     sys.exit(0)
-                else:
-                    print('Invalid response.')
+            do_del = ask('Would you like to delete: (a)ll, (n)one, (s)ome, (q)uit? ',
+                         options={'all':('all','a'), 'none':('n', 'none'), 'some':('some', 's'), 'quit':('q', 'quit', 'exit', 'x')})
+            if do_del == 'quit': sys.exit(0)
             if do_del != 'none':
                 if show_progress: print('Cleaning Files...') 
                 for root in files.keys():
                     if show_progress: print('Cleaning files in "%s"' % root)
                     for i in files[root]:
-                        while True:
-                            if do_del == 'some': del_file = input('Delete ' + i + '?')
-                            if do_del == 'all' or (('y' in del_file.lower() or '1' in del_file) and not ('n' in del_file.lower() or '0' in del_file)):
-                                os.remove(os.path.join(root, i))
-                                break
-                            elif not ('y' in del_file.lower() or '1' in del_file) and ('n' in del_file.lower() or '0' in del_file):
-                                break
-                            else:
-                                print('Invalid response.  Type \'y\' to delete the file')
-                                print('and \'n\' to leave the file.')
+                        if do_del == 'some': del_file = ask('Delete ' + i + '?')
+                        if do_del == 'all' or del_file:
+                            os.remove(os.path.join(root, i))
     else:
         rtn_files = {}
         if show_progress: print('Finding Files...')
@@ -222,18 +204,33 @@ def cleanup_files(base_path=os.getcwd(), show_progress=True, match=(lambda s: s[
 
 def cleanup_more_files(base_path=os.getcwd(), show_progress=True, opts=('log', 'aux', 'out', 'toc', 'bbl', 'blg'), match=(lambda s, e: '.' in s and s[s.rindex('.')+1:] == e)):
     for ext in opts:
-        while True:
-            do_opt = input('Delete files matching %s? ' % ext)
-            if ('y' in do_opt.lower() or '1' in do_opt) and not ('n' in do_opt.lower() or '0' in do_opt):
-                cleanup_files(base_path, show_progress, (lambda s: match(s, ext)))
-                break
-            elif not ('y' in do_opt.lower() or '1' in do_opt) and ('n' in do_opt.lower() or '0' in do_opt):
-                break
-            elif do_opt.lower() in ('quit', 'exit', 'q', 'x'):
-                sys.exit(0)
-            else:
-                print('Invalid response.  Type \'y\' to delete the files')
-                print('of this type and \'n\' to leave the files.')
+        result = ask('Delete files matching %s? ' % ext,
+                     options={'y':('y', 'yes', '1'), 'n':('no', '0', 'n'), 'q':('quit', 'exit', 'q', 'x')},
+                     repeat_message='Invalid response %s.  Type \'y\' to delete the files\nof this type and \'n\' to leave the files.\nType \'q\' to quit.')
+        if result == 'y':
+            cleanup_files(base_path, show_progress, (lambda s: match(s, ext)))
+        elif result == 'q':
+            sys.exit(0)
+    
+
+def ask(question, options={True:('yes','y','1'),False:('no','n','0')}, ignore_case=True, strip=True,
+        transformation=(lambda x: x), repeat=True, repeat_message='Invalid response %s.', can_match_many=False):
+    if not isinstance(options, dict):
+        options = dict((opt, (opt, opt[0])) for opt in options)
+    while True:
+        response = transformation(input(question))
+        if ignore_case: response = response.lower()
+        if strip: response = response.strip('\t\n\r ')
+        matches = dict((key, response in options[key]) for key in options)
+        rtn = tuple(sorted(key for key in matches if matches[key]))
+        if len(rtn) == 1:
+            return rtn[0]
+        elif can_match_many and len(rtn) > 1:
+            return rtn
+        elif not repeat:
+            return None
+        else:
+            print(repeat_message % repr(response))
     
 
 # For compatability with Python 3.x
