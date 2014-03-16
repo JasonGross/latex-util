@@ -66,6 +66,7 @@
 % \changes{v0.3c}{2012/04/28}{Replaced lastpage with pageslts.}
 % \changes{v0.4}{2012/10/08}{Use secnumdepth counter so things show up in TOC.}
 % \changes{v0.4a}{2014/03/16}{Replace some bad textttt with texttt.}
+% \changes{v0.4b}{2014/03/16}{Use string rather than noexpand.}
 %
 % \GetFileInfo{pset.dtx}
 %
@@ -220,10 +221,10 @@
 \let\@recitation\relax
 \let\@shortrecitation\relax
 \let\@collaborators\relax
-\def\@duedate{\@latex@warning@no@line{No \noexpand\duedate given}}
-\def\@classnumber{\@latex@warning@no@line{No \noexpand\classnumber given}}
-\def\@classname{\@latex@warning@no@line{No \noexpand\classname given}}
-\def\@professor{\@latex@warning@no@line{No \noexpand\professor given}}
+\def\@duedate{\@latex@warning@no@line{No \string\duedate\space given}}
+\def\@classnumber{\@latex@warning@no@line{No \string\classnumber\space given}}
+\def\@classname{\@latex@warning@no@line{No \string\classname\space given}}
+\def\@professor{\@latex@warning@no@line{No \string\professor\space given}}
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
