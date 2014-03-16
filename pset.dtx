@@ -19,7 +19,7 @@
 %<class>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
 %<driver>\ProvidesFile{pset.dtx}
 %<class>\ProvidesClass{pset}
-%<class> [2012/04/28 v0.3c PSet Template]
+%<class> [2014/03/16 v0.4a PSet Template]
 %<class>\RequirePackage{fancyhdr}
 %<class>\RequirePackage{pageslts}
 %<class>\RequirePackage{comment}
@@ -64,6 +64,8 @@
 % \changes{v0.3a}{2011/02/15}{Added recitation.}
 % \changes{v0.3b}{2011/02/20}{Fixed option passing.}
 % \changes{v0.3c}{2012/04/28}{Replaced lastpage with pageslts.}
+% \changes{v0.4}{2012/10/08}{Use secnumdepth counter so things show up in TOC.}
+% \changes{v0.4a}{2014/03/16}{Replace some bad textttt with texttt.}
 %
 % \GetFileInfo{pset.dtx}
 %
@@ -134,6 +136,12 @@
 %
 % \section{Setup}
 %
+% The \texttt{pset@secnumdepth} counter is used to store a temporary
+% value for the \texttt{secnumdepth} counter.
+%    \begin{macrocode}
+\newcounter{pset@secnumdepth}
+%    \end{macrocode}
+%
 % \begin{environment}{question}
 % Question environments should not nest.  So we redefine |\begin| to check for this.
 %    \begin{macrocode}
@@ -146,16 +154,23 @@
 }
 
 \newenvironment{question}[1][]{%
+ \setcounter{pset@secnumdepth}{\value{secnumdepth}}%
+ \ifnum\value{secnumdepth}>0
+   \setcounter{secnumdepth}{1}%
+ \fi
  \section{#1}
    \if@showproblem
-     \newenvironment{problem}{\subsection*{Problem}}{}%
-     \newenvironment{solution}{\subsection*{Solution}}{}%
+     \newenvironment{problem}{\subsection{Problem}}{}%
+     \newenvironment{solution}{\subsection{Solution}}{}%
    \else
      \excludecomment{problem}%
      \newenvironment{solution}{}{}%
    \fi
   \let\begin=\pset@question@begin
-}{\if@separatepages\cleardoublepage\fi}
+}{%
+ \setcounter{secnumdepth}{\value{pset@secnumdepth}}%
+ \if@separatepages\cleardoublepage\fi
+}
 %    \end{macrocode}
 % \end{environment}
 %
@@ -163,16 +178,21 @@
 % \begin{environment}{question*}
 %    \begin{macrocode}
 \newenvironment{question*}[1][]{%
- \section*{#1}
+ \setcounter{pset@secnumdepth}{\value{secnumdepth}}%
+ \setcounter{secnumdepth}{0}%
+ \section{#1}
   \if@showproblem
-    \newenvironment{problem}{\subsection*{Problem}}{}%
-    \newenvironment{solution}{\subsection*{Solution}}{}%
+    \newenvironment{problem}{\subsection{Problem}}{}%
+    \newenvironment{solution}{\subsection{Solution}}{}%
   \else
     \excludecomment{problem}%
     \newenvironment{solution}{}{}%
   \fi
   \let\begin=\pset@question@begin
-}{\if@separatepages\cleardoublepage\fi}
+}{%
+ \setcounter{secnumdepth}{\value{pset@secnumdepth}}%
+ \if@separatepages\cleardoublepage\fi
+}
 %    \end{macrocode}
 % \end{environment}
 %
